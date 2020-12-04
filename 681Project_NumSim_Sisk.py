@@ -153,7 +153,7 @@ for i in range(0,4):
             Rsol.append(solver.y[3])
             Nsol.append(solver.y[4])
         
-        if k<t<=j and i==2 and i!=3: 
+        if k<t<=j and i==2: 
         #for the third run it continues to integrate up to its switch time without parameter changes and records solution
             solver.integrate(t)
             assert solver.successful(), "Solver did not converge at time {}.".format(t)
@@ -163,15 +163,9 @@ for i in range(0,4):
             Rsol.append(solver.y[3])
             Nsol.append(solver.y[4])
 
-        if k<t<=2*k and i==3 and i!=2:
+        if k<t<=2*k and i==3:
         #for the fourth run once we hit its switch time (k) the parameters change (for the first time), 
         #then the solution is recorded with the new parameters
-            params['a'] = .03
-            params['b'] = .008
-            params['c'] = .4
-            params['d'] = .005
-            params['e'] = .05
-            params['g'] = .04
             params['v'] = .02
 
             solver.integrate(t)
@@ -182,13 +176,8 @@ for i in range(0,4):
             Rsol.append(solver.y[3])
             Nsol.append(solver.y[4])
 
-        if t>2*k and i==3 and i!=2: #Second parameter change for the fourth run
-            params['a'] = .03
-            params['b'] = .008
-            params['c'] = .4
-            params['d'] = .005
-            params['e'] = .05
-            params['g'] = .04
+        if t>2*k and i==3: #Second parameter change for the fourth run
+
             params['v'] = 0
 
             solver.integrate(t)
@@ -199,15 +188,9 @@ for i in range(0,4):
             Rsol.append(solver.y[3])
             Nsol.append(solver.y[4])
         
-        if t>j and i==2 and i!=3: 
+        if t>j and i==2: 
         #for the third run once we hit its switch time (j) the parameters change, 
         #then the solution is recorded with the new parameters
-            params['a'] = .03
-            params['b'] = .008
-            params['c'] = .4
-            params['d'] = .005
-            params['e'] = .05
-            params['g'] = .04
             params['v'] = .02
 
             solver.integrate(t)
@@ -223,9 +206,9 @@ for i in range(0,4):
 ##### Plot result ######
 ########################
     plt.figure()
-    plt.title("Plot of $S,E,I$ vs. time")
+    plt.title("Plot of $S,E,I$ vs. time {}".format(i+1))
     plt.plot(tpts, Ssol,tpts, Esol,tpts, Isol, tpts, Rsol)
-    plt.legend(['S','$E$','$I$'])
+    plt.legend(['S','$E$','$I$','$R$'])
     plt.xlabel("Time (months)")
     plt.ylabel("Population")
     plt.ylim(0,700)

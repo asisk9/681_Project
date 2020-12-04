@@ -136,10 +136,10 @@ if i==2:
 ######################## 
 # printing 
 # ######################
-sym.pprint('The equilibrium points are {}'.format(eq))
-sym.pprint('Stability of the equilibrium: {}'.format(stability))
+sym.pprint('The equilibrium points are {}.'.format(eq))
+sym.pprint('Stability of the equilibrium: {}.'.format(stability))
 print('The basic reproductive number is' )
 for x in basic_repro:
-    print('{}'.format(x))
+    print('{}.'.format(x))
 
 
