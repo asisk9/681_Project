@@ -38,7 +38,7 @@ test = -1
 # Parameters
 b = 0.525
 d = 0.5
-c = 0.0001
+c = 0.001
 e = 0.5
 g = 0.1
 a = 0.2
@@ -47,10 +47,10 @@ T = 20
 
 #Initial Conditions
 S0 = 1000
-E0 = 100
-I0 = 50
-R0 = 15
-N0 = 1165
+E0 = 2000
+I0 = 5000
+R0 = 1000
+N0 = 9000
 
 delta = 0.001   # Accepted Tolerance
 M = 1000
