@@ -40,7 +40,7 @@ def OC_SEIRN(b, d, c, e, g, a, A, T, S0, E0, I0, R0, N0):
  delta = 0.001   # Accepted Tolerance
  M = 1000
 
- tvec = np.linspace(0,T,M+1) # Time variable
+ t = np.linspace(0,T,M+1) # Time variable
  h = 1/M    # Step size for Runge-Kutta 4 sweep
  h2 = h/2
 
@@ -52,13 +52,13 @@ def OC_SEIRN(b, d, c, e, g, a, A, T, S0, E0, I0, R0, N0):
  I = np.zeros(M+1)     # State I
  N = np.zeros(M+1)     # State N
 
- Lambda1 = np.zeros(M+1) # Adjoint of S
- Lambda2 = np.zeros(M+1) # Adjoint of E
- Lambda3 = np.zeros(M+1) # Adjoint of I
- Lambda4 = np.zeros(M+1) # Adjoint of N
+ LambdaS = np.zeros(M+1) # Adjoint of S
+ LambdaE = np.zeros(M+1) # Adjoint of E
+ LambdaI = np.zeros(M+1) # Adjoint of I
+ LambdaN = np.zeros(M+1) # Adjoint of N
  Lambda = np.zeros((M+1,4))  # Adjoint
 
- R = np.zeros(M+1)
+ R = np.zeros(M+1)    # Recovery rate 
 
  S[0] = S0     # Stores initial value of State S.
  E[0] = E0     # Stores initial value of State E.
@@ -104,52 +104,50 @@ def OC_SEIRN(b, d, c, e, g, a, A, T, S0, E0, I0, R0, N0):
          I[i+1] = I[i] + (h/6)*(k13 + 2*k23 +2*k33 +k43) 
          N[i+1] = N[i] + (h/6)*(k14 + 2*k24 +2*k34 +k44)   
     
-     #Runge-Kutta 4 sweep: Solving Lambda backwards in time. Lambda1 is used  to find Lambda2, Lambda2 is used to solve Lambda3 and so on.
+     #Runge-Kutta 4 sweep: Solving Lambda backwards in time. LambdaS is used  to find LambdaE, LambdaE is used to solve LambdaI and so on.
      for i in np.arange (0,M):
          j = M + 2 - (i+2)
-         k11 = (d + c + u[j])*Lambda1[j] - c*Lambda2[j]*I[j]
-         k12 = (e + d)*Lambda2[j] - e*Lambda3[j]
-         k13 = -A + (g + a + d)*Lambda3[j] + c*Lambda1[j]*S[j] - c*Lambda2[j]*S[j] + a*Lambda4[j]
-         k14 = -(b - d)*Lambda4[j] - b*Lambda1[j]
+         k11 = (d + c + u[j])*LambdaS[j] - c*LambdaE[j]*I[j]
+         k12 = (e + d)*LambdaE[j] - e*LambdaI[j]
+         k13 = -A + (g + a + d)*LambdaI[j] + c*LambdaS[j]*S[j] - c*LambdaE[j]*S[j] + a*LambdaN[j]
+         k14 = -(b - d)*LambdaN[j] - b*LambdaS[j]
 
-         k21 = (d + c + 0.5*(u[j] + u[j-1]))*(Lambda1[j] - h2*k11) - c*(Lambda2[j] - h2*k12)*0.5*(I[j] + I[j-1])
-         k22 = (e + d)*(Lambda2[j] - h2*k12) - e*(Lambda3[j] - h2*k13)
-         k23 = -A + (g + a + d)*(Lambda3[j] - h2*k13) + c*(Lambda1[j] - h2*k11)*0.5*(S[j] + S[j-1]) - c*(Lambda2[j] - h2*k12)*0.5*(S[j] + S[j-1]) + a*(Lambda4[j] - h2*k14)
-         k24 = -(b - d)*(Lambda4[j] - h2*k14) - b*(Lambda1[j] - h2*k11)
+         k21 = (d + c + 0.5*(u[j] + u[j-1]))*(LambdaS[j] - h2*k11) - c*(LambdaE[j] - h2*k12)*0.5*(I[j] + I[j-1])
+         k22 = (e + d)*(LambdaE[j] - h2*k12) - e*(LambdaI[j] - h2*k13)
+         k23 = -A + (g + a + d)*(LambdaI[j] - h2*k13) + c*(LambdaS[j] - h2*k11)*0.5*(S[j] + S[j-1]) - c*(LambdaE[j] - h2*k12)*0.5*(S[j] + S[j-1]) + a*(LambdaN[j] - h2*k14)
+         k24 = -(b - d)*(LambdaN[j] - h2*k14) - b*(LambdaS[j] - h2*k11)
 
-         k31 = (d + c + 0.5*(u[j] + u[j-1]))*(Lambda1[j] - h2*k21) - c*(Lambda2[j] - h2*k22)*0.5*(I[j] + I[j-1])
-         k32 = (e + d)*(Lambda2[j] - h2*k22) - e*(Lambda3[j] - h2*k23)
-         k33 = -A + (g + a + d)*(Lambda3[j] - h2*k23) + c*(Lambda1[j] - h2*k21)*0.5*(S[j] + S[j-1]) - c*(Lambda2[j] - h2*k22)*0.5*(S[j] + S[j-1]) + a*(Lambda4[j] - h2*k24)
-         k34 = -(b - d)*(Lambda4[j] - h2*k24) - b*(Lambda1[j] - h2*k21)
+         k31 = (d + c + 0.5*(u[j] + u[j-1]))*(LambdaS[j] - h2*k21) - c*(LambdaE[j] - h2*k22)*0.5*(I[j] + I[j-1])
+         k32 = (e + d)*(LambdaE[j] - h2*k22) - e*(LambdaI[j] - h2*k23)
+         k33 = -A + (g + a + d)*(LambdaI[j] - h2*k23) + c*(LambdaS[j] - h2*k21)*0.5*(S[j] + S[j-1]) - c*(LambdaE[j] - h2*k22)*0.5*(S[j] + S[j-1]) + a*(LambdaN[j] - h2*k24)
+         k34 = -(b - d)*(LambdaN[j] - h2*k24) - b*(LambdaS[j] - h2*k21)
 
-         k41 = (d + c + u[j-1])*(Lambda1[j] - h*k31) - c*(Lambda2[j] - h*k32)* I[j-1]
-         k42 = (e + d)*(Lambda2[j] - h*k32) - e*(Lambda3[j] - h*k33)
-         k43 = -A + (g + a + d)*(Lambda3[j] - h*k33) + c*(Lambda1[j] - h*k31)*S[j-1] - c*(Lambda2[j] - h*k32)*S[j-1] + a*(Lambda4[j] - h*k34)
-         k44 = -(b - d)*(Lambda4[j] - h*k34) - b*(Lambda1[j] - h*k31)
+         k41 = (d + c + u[j-1])*(LambdaS[j] - h*k31) - c*(LambdaE[j] - h*k32)* I[j-1]
+         k42 = (e + d)*(LambdaE[j] - h*k32) - e*(LambdaI[j] - h*k33)
+         k43 = -A + (g + a + d)*(LambdaI[j] - h*k33) + c*(LambdaS[j] - h*k31)*S[j-1] - c*(LambdaE[j] - h*k32)*S[j-1] + a*(LambdaN[j] - h*k34)
+         k44 = -(b - d)*(LambdaN[j] - h*k34) - b*(LambdaS[j] - h*k31)
 
-         Lambda1[j-1] = Lambda1[j] - (h/6)*(k11 + 2*k21 + 2*k31 +k41)
-         Lambda2[j-1] = Lambda2[j] - (h/6)*(k12 + 2*k22 + 2*k32 +k42)
-         Lambda3[j-1] = Lambda3[j] - (h/6)*(k13 + 2*k23 + 2*k33 +k43)
-         Lambda4[j-1] = Lambda4[j] - (h/6)*(k14 + 2*k24 + 2*k34 +k44)
+         LambdaS[j-1] = LambdaS[j] - (h/6)*(k11 + 2*k21 + 2*k31 +k41)
+         LambdaE[j-1] = LambdaE[j] - (h/6)*(k12 + 2*k22 + 2*k32 +k42)
+         LambdaI[j-1] = LambdaI[j] - (h/6)*(k13 + 2*k23 + 2*k33 +k43)
+         LambdaN[j-1] = LambdaN[j] - (h/6)*(k14 + 2*k24 + 2*k34 +k44)
     
      # Make SEIN and Lambda1-4 into transpose matrices
      SEIN = np.array([S,E,I,N])
      x = SEIN.transpose()
-     Lam1_4 = np.array([Lambda1,Lambda2,Lambda3,Lambda4])
-     Lambda = Lam1_4.transpose()
-
-
-     y = x[:,0]
-     z = Lambda[:,0]
+     LamSEIN = np.array([LambdaS,LambdaE,LambdaI,LambdaN])
+     Lambda = LamSEIN.transpose()
 
      # Optimal Control
-     temp = (y*z)/2       #Represents the characterization of u 
+     w = x[:,0]          #Stores the susceptible
+     z = Lambda[:,0]     #Stores the Lambda of the susceptible
 
+     temp = (w*z)/2       #Represents the characterization of u 
 
-     m = np.zeros(M+1)                 #Represents u and it's bounds i.e 0<= u* <= 0.9
-     for i in np.arange (0,M+1):
+     m = np.zeros(M+1)                 
+     for i in np.arange (0,M+1):       #Represents u and it's bounds i.e 0<= u* <= 0.9
            m[i] = min(0.9, max(0,temp[i]))
-           u1 =m       
+           u1 = m       
 
            u = 0.5*(u1 + oldu)     # Control 
     
@@ -166,59 +164,221 @@ def OC_SEIRN(b, d, c, e, g, a, A, T, S0, E0, I0, R0, N0):
  #Solving for R where R = N - S - E - I
  R = x[:,3] - x[:,1] - x[:,2] - x[:,0]
 
- y = [x[:,0], x[:,1], x[:,2], x[:,3], R, u, tvec]
+ y = [x[:,0], x[:,1], x[:,2], x[:,3], R, u, t]
  return y
 
-y1 = OC_SEIRN(b = 0.525, d = 0.5, c = 0.0001, e = 0.5, g = 0.1, a = 0.2, A = 0.1, T = 20, S0 =1000, E0 =100, I0 = 50, R0 = 15, N0 =1165)
+y1 = OC_SEIRN(b = 0.525, d = 0.5, c = 0.0001, e = 0.5, g = 0.1, a = 0.2, A = 0.1, T = 20, S0 = 1000, E0 = 100, I0 = 50, R0 = 15, N0 = 1165)
 
-y2 = OC_SEIRN(b = 0.525, d = 0.5, c = 0.001, e = 0.5, g = 0.1, a = 0.2, A = 0.1, T = 20, S0 =1000, E0 =100, I0 = 50, R0 = 15, N0 =1165)
+y2 = OC_SEIRN(b = 0.525, d = 0.5, c = 0.001, e = 0.5, g = 0.1, a = 0.2, A = 0.1, T = 20, S0 = 1000, E0 = 100, I0 = 50, R0 = 15, N0 = 1165)
 
-y3 = OC_SEIRN(b = 0.525, d = 0.5, c = 0.001, e = 0.5, g = 0.1, a = 0.2, A = 0.1, T = 20, S0 =1000, E0 =1000, I0 = 2000, R0 = 500, N0 =1165)
+y3 = OC_SEIRN(b = 0.525, d = 0.5, c = 0.001, e = 0.5, g = 0.1, a = 0.2, A = 0.1, T = 20, S0 = 1000, E0 = 1000, I0 = 2000, R0 = 500, N0 = 4500)
 
-y4 = OC_SEIRN(b = 0.525, d = 0.5, c = 0.001, e = 0.5, g = 0.1, a = 0.2, A = 0.1, T = 20, S0 =1000, E0 =2000, I0 = 5000, R0 = 1000, N0 =1165)
+y4 = OC_SEIRN(b = 0.525, d = 0.5, c = 0.001, e = 0.5, g = 0.1, a = 0.2, A = 0.1, T = 20, S0 = 1000, E0 = 2000, I0 = 5000, R0 = 1000, N0 = 9000)
 
 
 ##Plot Results##
-plt.figure(figsize=(9,9)) 
+#Change figure size
+fig_size = plt.rcParams["figure.figsize"]
+fig_size[0] = 10
+fig_size[1] = 8
+plt.rcParams["figure.figsize"] = fig_size
+
+plt.figure(1)           #Plot of y1
 
 #plt.subplots_adjust(left=None,bottom=None,right=None,top=None,wspace=None,hspace=None)
 #This is used to fix the spacing of the subplots
+plt.subplots_adjust(None,None,None,None,0.5,0.5)    
+
+plt.subplot(3,2,1);plt.plot(y1[6], y1[0], 'r-.')
+plt.subplot(3,2,1);plt.xlabel('Time')
+plt.subplot(3,2,1);plt.ylabel('S')
+plt.subplot(3,2,1);plt.xlim([0,20])
+plt.subplot(3,2,1);plt.ylim(bottom=1000)
+
+plt.subplot(3,2,2);plt.plot(y1[6], y1[1], 'r-.')
+plt.subplot(3,2,2);plt.xlabel('Time')
+plt.subplot(3,2,2);plt.ylabel('E')
+plt.subplot(3,2,2);plt.xlim([0,20])
+plt.subplot(3,2,2);plt.ylim(bottom=39)
+
+plt.subplot(3,2,3);plt.plot(y1[6], y1[2], 'r-.')
+plt.subplot(3,2,3);plt.xlabel('Time')
+plt.subplot(3,2,3);plt.ylabel('I')   
+plt.subplot(3,2,3);plt.xlim([0,20])
+plt.subplot(3,2,3);plt.ylim(bottom=43.5)
+
+plt.subplot(3,2,4);plt.plot(y1[6], y1[4], 'r-.')
+plt.subplot(3,2,4);plt.xlabel('Time')
+plt.subplot(3,2,4);plt.ylabel('R')
+plt.subplot(3,2,4);plt.xlim([0,20])
+plt.subplot(3,2,4);plt.ylim(bottom=15)
+
+plt.subplot(3,2,5);plt.plot(y1[6], y1[3], 'r-.')
+plt.subplot(3,2,5);plt.xlabel('Time')
+plt.subplot(3,2,5);plt.ylabel('N')
+plt.subplot(3,2,5);plt.xlim([0,20])
+plt.subplot(3,2,5);plt.ylim(bottom=1165)
+
+plt.subplot(3,2,6);plt.plot(y1[6], y1[5], 'r-.')
+plt.subplot(3,2,6);plt.xlabel('Time')
+plt.subplot(3,2,6);plt.ylabel('u')   
+plt.subplot(3,2,6);plt.xlim([0,20])
+plt.subplot(3,2,6);plt.ylim(bottom=0)
+#---------------------------------------------------------------------------------------------------
+plt.figure(2)       #Plot of y2
+plt.subplots_adjust(None,None,None,None,0.5,0.5)    
+
+plt.subplot(3,2,1);plt.plot(y2[6], y2[0],'g--')
+plt.subplot(3,2,1);plt.xlabel('Time')
+plt.subplot(3,2,1);plt.ylabel('S')
+plt.subplot(3,2,1);plt.xlim([0,20])
+plt.subplot(3,2,1);plt.ylim(bottom=990)
+
+plt.subplot(3,2,2);plt.plot(y2[6], y2[1],'g--')
+plt.subplot(3,2,2);plt.xlabel('Time')
+plt.subplot(3,2,2);plt.ylabel('E')
+plt.subplot(3,2,2);plt.xlim([0,20])
+plt.subplot(3,2,2);plt.ylim(bottom=69)
+
+plt.subplot(3,2,3);plt.plot(y2[6], y2[2],'g--')
+plt.subplot(3,2,3);plt.xlabel('Time')
+plt.subplot(3,2,3);plt.ylabel('I')   
+plt.subplot(3,2,3);plt.xlim([0,20])
+plt.subplot(3,2,3);plt.ylim(bottom=50)
+
+plt.subplot(3,2,4);plt.plot(y2[6], y2[4],'g--')
+plt.subplot(3,2,4);plt.xlabel('Time')
+plt.subplot(3,2,4);plt.ylabel('R')
+plt.subplot(3,2,4);plt.xlim([0,20])
+plt.subplot(3,2,4);plt.ylim(bottom=15)
+
+plt.subplot(3,2,5);plt.plot(y2[6], y2[3],'g--')
+plt.subplot(3,2,5);plt.xlabel('Time')
+plt.subplot(3,2,5);plt.ylabel('N')
+plt.subplot(3,2,5);plt.xlim([0,20])
+plt.subplot(3,2,5);plt.ylim(bottom=1165)
+
+plt.subplot(3,2,6);plt.plot(y2[6], y2[5],'g--')
+plt.subplot(3,2,6);plt.xlabel('Time')
+plt.subplot(3,2,6);plt.ylabel('u')   
+plt.subplot(3,2,6);plt.xlim([0,20])
+plt.subplot(3,2,6);plt.ylim(bottom=0)
+#---------------------------------------------------------------------------------------------------
+plt.figure(3)          #Plot of y3
+plt.subplots_adjust(None,None,None,None,0.5,0.5)    
+
+plt.subplot(3,2,1);plt.plot(y3[6], y3[0], 'm_')
+plt.subplot(3,2,1);plt.xlabel('Time')
+plt.subplot(3,2,1);plt.ylabel('S')
+plt.subplot(3,2,1);plt.xlim([0,20])
+plt.subplot(3,2,1);plt.ylim(bottom=800)
+
+plt.subplot(3,2,2);plt.plot(y3[6], y3[1], 'm_')
+plt.subplot(3,2,2);plt.xlabel('Time')
+plt.subplot(3,2,2);plt.ylabel('E')
+plt.subplot(3,2,2);plt.xlim([0,20])
+plt.subplot(3,2,2);plt.ylim(bottom=1000)
+
+plt.subplot(3,2,3);plt.plot(y3[6], y3[2], 'm_')
+plt.subplot(3,2,3);plt.xlabel('Time')
+plt.subplot(3,2,3);plt.ylabel('I')   
+plt.subplot(3,2,3);plt.xlim([0,20])
+plt.subplot(3,2,3);plt.ylim(bottom=1307)
+
+plt.subplot(3,2,4);plt.plot(y3[6], y3[4], 'm_')
+plt.subplot(3,2,4);plt.xlabel('Time')
+plt.subplot(3,2,4);plt.ylabel('R')
+plt.subplot(3,2,4);plt.xlim([0,20])
+plt.subplot(3,2,4);plt.ylim(bottom=500)
+
+plt.subplot(3,2,5);plt.plot(y3[6], y3[3], 'm_')
+plt.subplot(3,2,5);plt.xlabel('Time')
+plt.subplot(3,2,5);plt.ylabel('N')
+plt.subplot(3,2,5);plt.xlim([0,20])
+plt.subplot(3,2,5);plt.ylim(bottom=4289)
+
+plt.subplot(3,2,6);plt.plot(y3[6], y3[5], 'm_')
+plt.subplot(3,2,6);plt.xlabel('Time')
+plt.subplot(3,2,6);plt.ylabel('u')   
+plt.subplot(3,2,6);plt.xlim([0,20])
+plt.subplot(3,2,6);plt.ylim(bottom=0)
+#------------------------------------------------------------------------------------------------------
+plt.figure(4)            #Plot of y4
+plt.subplots_adjust(None,None,None,None,0.5,0.5)    
+
+plt.subplot(3,2,1);plt.plot(y4[6], y4[0])
+plt.subplot(3,2,1);plt.xlabel('Time')
+plt.subplot(3,2,1);plt.ylabel('S')
+plt.subplot(3,2,1);plt.xlim([0,20])
+plt.subplot(3,2,1);plt.ylim(bottom=800)
+
+plt.subplot(3,2,2);plt.plot(y4[6], y4[1])
+plt.subplot(3,2,2);plt.xlabel('Time')
+plt.subplot(3,2,2);plt.ylabel('E')
+plt.subplot(3,2,2);plt.xlim([0,20])
+plt.subplot(3,2,2);plt.ylim(bottom=2000)
+
+plt.subplot(3,2,3);plt.plot(y4[6], y4[2])
+plt.subplot(3,2,3);plt.xlabel('Time')
+plt.subplot(3,2,3);plt.ylabel('I')   
+plt.subplot(3,2,3);plt.xlim([0,20])
+plt.subplot(3,2,3);plt.ylim(bottom=3160)
+
+plt.subplot(3,2,4);plt.plot(y4[6], y4[4])
+plt.subplot(3,2,4);plt.xlabel('Time')
+plt.subplot(3,2,4);plt.ylabel('R')
+plt.subplot(3,2,4);plt.xlim([0,20])
+plt.subplot(3,2,4);plt.ylim(bottom=1000)
+
+plt.subplot(3,2,5);plt.plot(y4[6], y4[3])
+plt.subplot(3,2,5);plt.xlabel('Time')
+plt.subplot(3,2,5);plt.ylabel('N')
+plt.subplot(3,2,5);plt.xlim([0,20])
+plt.subplot(3,2,5);plt.ylim(bottom=8431)
+
+plt.subplot(3,2,6);plt.plot(y4[6], y4[5])
+plt.subplot(3,2,6);plt.xlabel('Time')
+plt.subplot(3,2,6);plt.ylabel('u')   
+plt.subplot(3,2,6);plt.xlim([0,20])
+plt.subplot(3,2,6);plt.ylim(bottom=0)
+#-----------------------------------------------------------------------------------------
+plt.figure(5)      #Plot of y1 - y4 
 plt.subplots_adjust(None,None,None,None,0.5,0.5)    
 
 plt.subplot(3,2,1);plt.plot(y1[6], y1[0], 'r-.', y2[6], y2[0],'g--', y3[6], y3[0], 'm_', y4[6], y4[0])
 plt.subplot(3,2,1);plt.xlabel('Time')
 plt.subplot(3,2,1);plt.ylabel('S')
 plt.subplot(3,2,1);plt.xlim([0,20])
-
+plt.subplot(3,2,1);plt.ylim(bottom=800)
 
 plt.subplot(3,2,2);plt.plot(y1[6], y1[1], 'r-.', y2[6], y2[1],'g--', y3[6], y3[1], 'm_', y4[6], y4[1])
 plt.subplot(3,2,2);plt.xlabel('Time')
 plt.subplot(3,2,2);plt.ylabel('E')
 plt.subplot(3,2,2);plt.xlim([0,20])
-
+plt.subplot(3,2,2);plt.ylim(bottom=39)
 
 plt.subplot(3,2,3);plt.plot(y1[6], y1[2], 'r-.', y2[6], y2[2],'g--',  y3[6], y3[2], 'm_', y4[6], y4[2])
 plt.subplot(3,2,3);plt.xlabel('Time')
 plt.subplot(3,2,3);plt.ylabel('I')   
 plt.subplot(3,2,3);plt.xlim([0,20])
-
+plt.subplot(3,2,3);plt.ylim(bottom=43.5)
 
 plt.subplot(3,2,4);plt.plot(y1[6], y1[4], 'r-.', y2[6], y2[4],'g--', y3[6], y3[4], 'm_', y4[6], y4[4])
 plt.subplot(3,2,4);plt.xlabel('Time')
 plt.subplot(3,2,4);plt.ylabel('R')
 plt.subplot(3,2,4);plt.xlim([0,20])
-
+plt.subplot(3,2,4);plt.ylim(bottom=15)
 
 plt.subplot(3,2,5);plt.plot(y1[6], y1[3], 'r-.', y2[6], y2[3],'g--', y3[6], y3[3], 'm_', y4[6], y4[3])
 plt.subplot(3,2,5);plt.xlabel('Time')
 plt.subplot(3,2,5);plt.ylabel('N')
 plt.subplot(3,2,5);plt.xlim([0,20])
-
+plt.subplot(3,2,5);plt.ylim(bottom=1165)
 
 plt.subplot(3,2,6);plt.plot(y1[6], y1[5], 'r-.', y2[6], y2[5],'g--', y3[6], y3[5], 'm_', y4[6], y4[5])
 plt.subplot(3,2,6);plt.xlabel('Time')
 plt.subplot(3,2,6);plt.ylabel('u')   
 plt.subplot(3,2,6);plt.xlim([0,20])
-
+plt.subplot(3,2,6);plt.ylim(bottom=0)
 
 plt.show()
