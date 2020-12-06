@@ -36,8 +36,7 @@ def OC_F_B_Sweep(A,B,C):
  test = -1
  
 
- x0 = 1 # Initial value of x
-
+ x0 = 1 # Initial value of x.
  delta = 0.001   # Accepted Tolerance
 
  h = 1/N    # Step size for Runge-Kutta 4 sweep
@@ -110,15 +109,18 @@ plt.subplot(3,1,1);plt.plot( t, y1[0], 'r-.', t, y2[0],'g--',  t, y3[0])
 plt.subplot(3,1,1);plt.xlabel('Time')
 plt.subplot(3,1,1);plt.ylabel('State')
 plt.subplot(3,1,1);plt.xlim([0,1])
+plt.subplot(3,1,1);plt.ylim(bottom=1)
 
 plt.subplot(3,1,2);plt.plot( t, y1[1], 'r-.', t, y2[1],'g--',  t, y3[1])
 plt.subplot(3,1,2);plt.xlabel('Time')
 plt.subplot(3,1,2);plt.ylabel('Adjoint')
 plt.subplot(3,1,2);plt.xlim([0,1])
+plt.subplot(3,1,2);plt.ylim(bottom=0)
 
 plt.subplot(3,1,3);plt.plot( t, y1[2], 'r-.', t, y2[2],'g--',  t, y3[2])
 plt.subplot(3,1,3);plt.xlabel('Time')
 plt.subplot(3,1,3);plt.ylabel('Control')   
 plt.subplot(3,1,3);plt.xlim([0,1])
+plt.subplot(3,1,3);plt.ylim(bottom=0)
 
 plt.show()
