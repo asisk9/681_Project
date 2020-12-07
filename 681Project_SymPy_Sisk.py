@@ -5,7 +5,7 @@ This code includes three functions: eq_points, Stability, NextGen
 eq_points: finds equilibrium points
 Arguments: the LHS of the model, the state variables
 
-Stability: determines the eigenvaules of the jacobian evaluated at an 
+Stability: determines the eigenvalues of the jacobian evaluated at an 
 equilibrium point (to help determine conditions for stability)
 Arugments: the LHS of the model, the state variables, equilibrium point 
 
@@ -52,7 +52,7 @@ def stability(system,state_var,eq):
         eigenval.append(i)
     for i in range(len(eigenval)):
         if eigenval[i]==0:
-            warning="Stability cannot be determine due to zero eigenvalue!"
+            warning="Stability cannot be determine due to zero eigenvalue"
             zeoeig=True
             break
         else:
@@ -85,7 +85,7 @@ def NextGen(InfectVar,state_var,InFlow,OFlow,DFE):
 ######################
 
 #pick which model to run by changing the i value
-i=2
+i=1
 
 if i==1:
 #SI model

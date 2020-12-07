@@ -206,7 +206,7 @@ for i in range(0,4):
 ##### Plot result ######
 ########################
     plt.figure()
-    plt.title("Plot of $S,E,I$ vs. time {}".format(i+1))
+    plt.title("Plot of $S,E,I$ vs. time for run {}".format(i+1))
     plt.plot(tpts, Ssol,tpts, Esol,tpts, Isol, tpts, Rsol)
     plt.legend(['S','$E$','$I$','$R$'])
     plt.xlabel("Time (months)")
